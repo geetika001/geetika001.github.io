@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NirmaanHub — Contractor Discovery & Deal Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7; --panel:#F4F2EC; --card:#FFFFFF;
+    --ink:#21201C; --muted:#6E6A60; --faint:#9B968A; --line:#E7E4DB;
+    --green:#1E6B4F; --green-soft:#E4F0EA; --green-line:#C4DED2;
+    --amber:#A9640D; --amber-soft:#FBF0DC;
+    --blue:#2E5EAA; --blue-soft:#E8EEF9;
+    --red:#B3402E; --red-soft:#F9E7E3;
+    --btn-ink:#1C1B18;
+    --radius:10px; --radius-lg:14px;
+    --shadow:0 1px 2px rgba(30,28,22,.05), 0 4px 14px rgba(30,28,22,.05);
+    font-size:15px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Instrument Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:var(--paper); color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font:inherit; cursor:pointer;}
+  input,select,textarea{font:inherit; color:var(--ink);}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ---------- Shell ---------- */
+  .app{display:flex; min-height:100vh;}
+  .sidebar{
+    width:228px; flex:0 0 228px; background:var(--panel);
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh;
+  }
+  .brand{padding:20px 18px 14px;}
+  .brand .word{font-size:1.15rem; font-weight:700; letter-spacing:-.02em;}
+  .brand .word em{font-style:normal; color:var(--green);}
+  .brand .sub{font-size:.72rem; color:var(--muted); margin-top:2px;}
+  .navgrp{padding:12px 10px 4px;}
+  .navlabel{font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); padding:0 10px 6px;}
+  .navitem{
+    display:flex; align-items:center; gap:9px; width:100%;
+    padding:8px 10px; border:0; background:none; border-radius:8px;
+    color:var(--muted); font-weight:500; font-size:.9rem; text-align:left;
+  }
+  .navitem svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.7; flex:0 0 16px;}
+  .navitem:hover{background:rgba(30,28,22,.05); color:var(--ink);}
+  .navitem.active{background:var(--card); color:var(--ink); box-shadow:var(--shadow); font-weight:600;}
+  .navitem .pill{
+    margin-left:auto; background:#D6462E; color:#fff; font-size:.66rem; font-weight:700;
+    min-width:17px; height:17px; border-radius:9px; display:flex; align-items:center; justify-content:center; padding:0 5px;
+  }
+  .sidebar .userbox{
+    margin-top:auto; border-top:1px solid var(--line); padding:14px 16px;
+    display:flex; gap:10px; align-items:center;
+  }
+  .avatar{width:32px;height:32px;border-radius:50%; background:var(--blue-soft); color:var(--blue);
+    display:flex;align-items:center;justify-content:center; font-size:.72rem; font-weight:700;}
+  .userbox .uname{font-size:.85rem; font-weight:600;}
+  .userbox .urole{font-size:.72rem; color:var(--muted);}
+
+  .main{flex:1; min-width:0; display:flex; flex-direction:column;}
+  .topbar{
+    display:flex; align-items:center; gap:12px;
+    padding:14px 26px; border-bottom:1px solid var(--line); background:var(--paper);
+    position:sticky; top:0; z-index:20;
+  }
+  .topbar .crumb .t{font-weight:600; font-size:.95rem;}
+  .topbar .crumb .s{font-size:.74rem; color:var(--muted);}
+  .topbar .spacer{flex:1;}
+  .btn{
+    border:1px solid var(--line); background:var(--card); color:var(--ink);
+    border-radius:9px; padding:7px 14px; font-weight:600; font-size:.85rem;
+    display:inline-flex; align-items:center; gap:7px; transition:background .12s, border-color .12s;
+  }
+  .btn:hover{border-color:#CFCBBF; background:#FCFBF8;}
+  .btn:focus-visible, .navitem:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--green); outline-offset:2px;
+  }
+  .btn.primary{background:var(--btn-ink); color:#fff; border-color:var(--btn-ink);}
+  .btn.primary:hover{background:#33312B;}
+  .btn.green{background:var(--green); border-color:var(--green); color:#fff;}
+  .btn.green:hover{background:#1A5C44;}
+  .btn.danger{background:var(--red-soft); border-color:#EFC9C0; color:var(--red);}
+  .btn.small{padding:5px 11px; font-size:.8rem;}
+  .btn .dot{width:15px;height:15px;border-radius:8px;background:#D6462E;color:#fff;font-size:.62rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+
+  .content{padding:24px 26px 60px; max-width:1060px; width:100%; margin:0 auto;}
+
+  /* ---------- Stepper ---------- */
+  .stepper{display:flex; align-items:center; gap:8px; margin-bottom:22px; flex-wrap:wrap;}
+  .step{display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--faint); font-weight:500;}
+  .step .n{
+    width:22px;height:22px;border-radius:50%; border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center; font-size:.72rem; font-weight:700; background:var(--card);
+  }
+  .step.done .n{background:var(--green-soft); border-color:var(--green-line); color:var(--green);}
+  .step.done{color:var(--muted);}
+  .step.current{color:var(--ink);}
+  .step.current .n{background:var(--btn-ink); border-color:var(--btn-ink); color:#fff;}
+  .step-line{flex:1; min-width:26px; height:1px; background:var(--line);}
+
+  /* ---------- Cards & badges ---------- */
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius-lg); box-shadow:var(--shadow);}
+  .badge{
+    display:inline-flex; align-items:center; gap:5px; padding:2.5px 9px; border-radius:20px;
+    font-size:.7rem; font-weight:600; white-space:nowrap;
+  }
+  .badge.green{background:var(--green-soft); color:var(--green);}
+  .badge.amber{background:var(--amber-soft); color:var(--amber);}
+  .badge.blue{background:var(--blue-soft); color:var(--blue);}
+  .badge.gray{background:#F0EEE7; color:var(--muted);}
+  .badge.red{background:var(--red-soft); color:var(--red);}
+
+  h1.page{font-size:1.35rem; letter-spacing:-.01em; margin-bottom:4px;}
+  .pagesub{color:var(--muted); font-size:.88rem; margin-bottom:22px;}
+  .secthead{font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); margin:26px 0 10px; font-weight:600;}
+
+  /* ---------- Dashboard ---------- */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+  .stat{padding:16px 16px 14px;}
+  .stat .v{font-size:1.7rem; font-weight:700; letter-spacing:-.02em;}
+  .stat .l{font-size:.76rem; color:var(--muted); margin-top:2px;}
+  .reqcard{padding:15px 16px; display:flex; gap:13px; align-items:flex-start;}
+  .reqcard + .reqcard{margin-top:10px;}
+  .cat-ic{
+    width:36px;height:36px;border-radius:9px; display:flex;align-items:center;justify-content:center;
+    font-size:.68rem; font-weight:700; flex:0 0 36px;
+  }
+  .cat-ic.mep{background:#E7EEF9; color:#2E5EAA;}
+  .cat-ic.civ{background:#FBF0DC; color:#A9640D;}
+  .cat-ic.int{background:#EDE8F7; color:#6C4FB3;}
+  .cat-ic.wat{background:#E4F0EA; color:#1E6B4F;}
+  .cat-ic.lan{background:#E9F2E2; color:#4E7A2B;}
+  .reqcard .body{flex:1; min-width:0;}
+  .reqcard .t{font-weight:600; font-size:.93rem;}
+  .reqcard .m{font-size:.76rem; color:var(--muted); margin:3px 0 8px;}
+  .reqcard .badges{display:flex; gap:6px; flex-wrap:wrap;}
+
+  /* ---------- Forms ---------- */
+  .formcard{padding:22px;}
+  .fgrid{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px;}
+  .fgrid .full{grid-column:1/-1;}
+  .field label{display:block; font-size:.74rem; font-weight:600; color:var(--muted); margin-bottom:5px;}
+  .field input, .field select, .field textarea{
+    width:100%; border:1px solid var(--line); border-radius:8px; background:#FDFDFB;
+    padding:8px 11px; font-size:.88rem;
+  }
+  .field textarea{resize:vertical; min-height:74px;}
+  .chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{
+    border:1px solid var(--line); background:var(--card); border-radius:20px;
+    padding:6px 14px; font-size:.82rem; font-weight:500; color:var(--muted);
+  }
+  .chip.on{background:var(--btn-ink); border-color:var(--btn-ink); color:#fff; font-weight:600;}
+  .formfoot{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+
+  /* ---------- Matches ---------- */
+  .matchmeta{display:flex; align-items:center; gap:10px; margin-bottom:14px; font-size:.82rem; color:var(--muted);}
+  .matchmeta .spacer{flex:1;}
+  .ccard{padding:16px 18px;}
+  .ccard + .ccard{margin-top:12px;}
+  .ccard.top{border-color:var(--green-line); box-shadow:0 0 0 1px var(--green-line), var(--shadow);}
+  .ccard .head{display:flex; align-items:flex-start; gap:12px;}
+  .ccard .head .info{flex:1; min-width:0;}
+  .ccard .name{font-weight:700; font-size:.98rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .ccard .meta{font-size:.76rem; color:var(--muted); margin:2px 0 7px;}
+  .score{text-align:right; flex:0 0 auto;}
+  .score .v{font-size:1.55rem; font-weight:700; letter-spacing:-.02em; color:var(--green); line-height:1;}
+  .score .l{font-size:.66rem; color:var(--faint); margin-top:3px;}
+  .ratings{display:grid; grid-template-columns:1fr 1fr; gap:7px 26px; margin:12px 0 4px;}
+  .rrow{display:flex; align-items:center; gap:9px; font-size:.74rem; color:var(--muted);}
+  .rrow .rl{width:110px; flex:0 0 110px;}
+  .rbar{flex:1; height:4px; border-radius:2px; background:#EFEDE5; overflow:hidden;}
+  .rbar i{display:block; height:100%; background:var(--green); border-radius:2px; width:0; transition:width .7s ease;}
+  .rrow .rv{width:26px; text-align:right; font-weight:600; color:var(--ink);}
+  .ccard .foot{display:flex; align-items:center; gap:8px; margin-top:11px; flex-wrap:wrap;}
+  .ccard .foot .spacer{flex:1;}
+  .btn.shortlisted{background:var(--green-soft); border-color:var(--green-line); color:var(--green);}
+  .mutenote{font-size:.76rem; color:var(--faint); font-style:italic;}
+
+  /* ---------- Alerts ---------- */
+  .alertrow{padding:14px 16px; display:flex; gap:11px;}
+  .alertrow + .alertrow{margin-top:10px;}
+  .alertrow .ind{width:8px;height:8px;border-radius:50%;background:var(--green); margin-top:6px; flex:0 0 8px;}
+  .alertrow.read .ind{background:var(--line);}
+  .alertrow .t{font-weight:600; font-size:.9rem;}
+  .alertrow .d{font-size:.8rem; color:var(--muted); margin:2px 0 3px;}
+  .alertrow .ts{font-size:.72rem; color:var(--faint); margin-bottom:8px;}
+
+  /* ---------- Quotations ---------- */
+  .qgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
+  .qcard{padding:15px 17px; position:relative;}
+  .qcard.rec{border-color:var(--green-line); box-shadow:0 0 0 1px var(--green-line), var(--shadow);}
+  .qcard .who{font-weight:600; font-size:.88rem; display:flex; align-items:center; gap:8px;}
+  .qcard .amt{font-size:1.45rem; font-weight:700; letter-spacing:-.02em; margin:6px 0 4px;}
+  .qcard .terms{font-size:.75rem; color:var(--muted); line-height:1.5;}
+  table.lineitems{width:100%; border-collapse:collapse; font-size:.84rem;}
+  table.lineitems th{
+    text-align:left; font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--faint); font-weight:600; padding:9px 10px; border-bottom:1px solid var(--line);
+  }
+  table.lineitems td{padding:10px; border-bottom:1px solid #F1EFE8;}
+  table.lineitems th.r, table.lineitems td.r{text-align:right;}
+  table.lineitems tr.total td{border-bottom:0; font-weight:700; padding-top:12px;}
+  .qdetail{padding:0; overflow:hidden;}
+  .qdetail .qhead{display:flex; align-items:center; gap:10px; padding:14px 17px; border-bottom:1px solid var(--line);}
+  .qdetail .qhead .t{font-weight:600; font-size:.9rem;}
+  .qdetail .qhead .s{font-size:.73rem; color:var(--muted);}
+  .qdetail .qfoot{display:flex; justify-content:flex-end; gap:9px; padding:13px 17px; border-top:1px solid var(--line); background:#FCFBF8;}
+
+  /* ---------- Closed deals ---------- */
+  .dealrow{padding:13px 16px; display:flex; align-items:center; gap:12px;}
+  .dealrow + .dealrow{margin-top:9px;}
+  .dealrow .t{font-weight:600; font-size:.9rem;}
+  .dealrow .m{font-size:.76rem; color:var(--muted); margin-top:2px;}
+  .dealrow .spacer{flex:1;}
+  .upload{
+    border:1.5px dashed var(--line); border-radius:10px; background:#FCFBF8;
+    padding:22px; text-align:center; color:var(--faint); font-size:.82rem; cursor:pointer;
+  }
+  .upload.ok{border-color:var(--green-line); background:var(--green-soft); color:var(--green); font-weight:600;}
+
+  /* ---------- Contractor directory ---------- */
+  .dirgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(8px);
+    background:var(--btn-ink); color:#fff; padding:10px 18px; border-radius:10px;
+    font-size:.85rem; font-weight:500; opacity:0; pointer-events:none;
+    transition:opacity .2s, transform .2s; z-index:99; box-shadow:0 8px 24px rgba(0,0,0,.18);
+    max-width:90vw;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .view{display:none;}
+  .view.active{display:block; animation:fade .18s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:900px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .qgrid, .dirgrid, .fgrid{grid-template-columns:1fr;}
+    .ratings{grid-template-columns:1fr;}
+  }
+  @media (max-width:760px){
+    .sidebar{width:64px; flex-basis:64px;}
+    .brand .word{font-size:.8rem;}
+    .brand .sub, .navlabel, .navitem span.lbl, .userbox .txt{display:none;}
+    .navitem{justify-content:center;}
+    .navitem .pill{position:absolute; margin:0; transform:translate(10px,-10px);}
+    .navitem{position:relative;}
+    .content{padding:18px 14px 60px;}
+    .topbar{padding:12px 14px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ======================= SIDEBAR ======================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="word">Nirmaan<em>Hub</em></div>
+      <div class="sub">Real Estate · Contracts</div>
+    </div>
+    <nav class="navgrp" aria-label="Workspace">
+      <div class="navlabel">Workspace</div>
+      <button class="navitem" data-nav="dashboard">
+        <svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg><span class="lbl">Dashboard</span>
+      </button>
+      <button class="navitem" data-nav="new-request">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">New request</span>
+      </button>
+      <button class="navitem" data-nav="contractors">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="3.5"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/></svg><span class="lbl">Contractors</span>
+      </button>
+      <button class="navitem" data-nav="quotations">
+        <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg><span class="lbl">Quotations</span>
+      </button>
+      <button class="navitem" data-nav="closed-deals">
+        <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg><span class="lbl">Closed deals</span>
+      </button>
+    </nav>
+    <nav class="navgrp" aria-label="Activity">
+      <div class="navlabel">Activity</div>
+      <button class="navitem" data-nav="alerts">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="lbl">Alerts</span><span class="pill" id="alertPill">4</span>
+      </button>
+    </nav>
+    <div class="userbox">
+      <div class="avatar">RK</div>
+      <div class="txt">
+        <div class="uname">Rahul K.</div>
+        <div class="urole">Contracts dept</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================= MAIN ======================= -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">
+        <div class="t" id="crumbTitle">Dashboard</div>
+        <div class="s">Prestige Realty · July 2026</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" data-nav="alerts">Alerts <span class="dot" id="alertDot">4</span></button>
+      <button class="btn primary" data-nav="new-request">Find contractor</button>
+    </header>
+
+    <div class="content">
+
+      <!-- ================= DASHBOARD ================= -->
+      <section class="view" id="view-dashboard">
+        <div class="stats">
+          <div class="card stat"><div class="v num" id="statActive">12</div><div class="l">Active requests</div></div>
+          <div class="card stat"><div class="v num">38</div><div class="l">Registered contractors</div></div>
+          <div class="card stat"><div class="v num" id="statQuotes">5</div><div class="l">Quotations pending</div></div>
+          <div class="card stat"><div class="v num" id="statClosed">3</div><div class="l">Deals closed this month</div></div>
+        </div>
+
+        <div class="secthead">Recent requests</div>
+        <div class="card reqcard">
+          <div class="cat-ic mep">MW</div>
+          <div class="body">
+            <div class="t">MEP works — Tower B, Whitefield</div>
+            <div class="m">Posted 2 days ago · Budget ₹40–60L · 6 contractors matched</div>
+            <div class="badges">
+              <span class="badge green">6 matched</span>
+              <span class="badge amber">2 showed interest</span>
+              <span class="badge blue">1 quotation received</span>
+            </div>
+          </div>
+          <button class="btn small" data-nav="matches">View</button>
+        </div>
+        <div class="card reqcard">
+          <div class="cat-ic civ">CI</div>
+          <div class="body">
+            <div class="t">Civil &amp; structural — Phase 3 foundation</div>
+            <div class="m">Posted 5 days ago · Budget ₹1.2–1.8Cr · 9 contractors matched</div>
+            <div class="badges">
+              <span class="badge green">9 matched</span>
+              <span class="badge amber">5 showed interest</span>
+              <span class="badge gray">Shortlisted 3</span>
+            </div>
+          </div>
+          <button class="btn small" onclick="toast('Opening request — prototype shows the MEP flow end-to-end')">View</button>
+        </div>
+        <div class="card reqcard">
+          <div class="cat-ic int">IF</div>
+          <div class="body">
+            <div class="t">Interior fit-out — Sales office, Koramangala</div>
+            <div class="m">Posted 1 week ago · Budget ₹18–25L · Deal closed</div>
+            <div class="badges">
+              <span class="badge green">Deal finalised</span>
+              <span class="badge green">Agreement uploaded</span>
+            </div>
+          </div>
+          <button class="btn small" data-nav="closed-deals">View</button>
+        </div>
+      </section>
+
+      <!-- ================= NEW REQUEST ================= -->
+      <section class="view" id="view-new-request">
+        <div class="stepper" data-step="1"></div>
+        <h1 class="page">New contractor request</h1>
+        <p class="pagesub">Describe the work. NirmaanHub matches and ranks verified contractors the moment you submit.</p>
+
+        <div class="card formcard">
+          <div class="secthead" style="margin-top:0">Task type</div>
+          <div class="chips" id="taskChips">
+            <button class="chip">Civil &amp; structural</button>
+            <button class="chip on">MEP</button>
+            <button class="chip">Interior fit-out</button>
+            <button class="chip">Facade &amp; cladding</button>
+            <button class="chip">Landscaping</button>
+            <button class="chip">Facility management</button>
+            <button class="chip">Legal &amp; documentation</button>
+            <button class="chip">Fire &amp; safety</button>
+          </div>
+
+          <div class="secthead">Project &amp; site details</div>
+          <div class="fgrid">
+            <div class="field"><label for="f-proj">Project name</label><input id="f-proj" value="Prestige Towers – Tower B"></div>
+            <div class="field"><label for="f-addr">Site address</label><input id="f-addr" value="Whitefield, Bengaluru 560066"></div>
+            <div class="field"><label for="f-city">Location / city</label>
+              <select id="f-city"><option>Bengaluru</option><option>Hyderabad</option><option>Chennai</option><option>Pune</option></select>
+            </div>
+            <div class="field"><label for="f-jur">Jurisdiction / zone</label>
+              <select id="f-jur"><option>BBMP</option><option>BDA</option><option>HMDA</option><option>CMDA</option></select>
+            </div>
+            <div class="field full"><label for="f-scope">Scope of work</label>
+              <textarea id="f-scope">Supply, installation and commissioning of complete MEP systems for floors 4–12 of Tower B. Includes HVAC ducting, plumbing risers, electrical LT panels and fire suppression loop.</textarea>
+            </div>
+          </div>
+
+          <div class="secthead">Technical &amp; commercial requirements</div>
+          <div class="fgrid">
+            <div class="field"><label for="f-cert">Certifications required</label><input id="f-cert" value="ISO 9001, ECBC compliant"></div>
+            <div class="field"><label for="f-work">Min. workforce on site</label><input id="f-work" value="35 workers"></div>
+            <div class="field"><label for="f-budget">Budget range (₹)</label>
+              <select id="f-budget"><option>₹25–60 Lakhs</option><option>₹10–25 Lakhs</option><option>₹60L – 1 Cr</option><option>Above ₹1 Cr</option></select>
+            </div>
+            <div class="field"><label for="f-vis">Budget visibility</label>
+              <select id="f-vis"><option>Show range to contractors</option><option>Mark as negotiable</option><option>Keep undisclosed</option></select>
+            </div>
+            <div class="field"><label for="f-dur">Estimated duration</label><input id="f-dur" value="5 months"></div>
+            <div class="field"><label for="f-urg">Urgency</label>
+              <select id="f-urg"><option>Within 2 weeks</option><option>Immediate</option><option>Planned</option></select>
+            </div>
+            <div class="field"><label for="f-site">Site access constraints</label><input id="f-site" value="Daytime only, mandatory HSE induction"></div>
+            <div class="field"><label for="f-size">Preferred contractor size</label>
+              <select id="f-size"><option>Mid-size (20–100 staff)</option><option>Small (under 20 staff)</option><option>Large (100+ staff)</option></select>
+            </div>
+          </div>
+
+          <div class="formfoot">
+            <button class="btn" onclick="toast('Draft saved')">Save draft</button>
+            <button class="btn primary" id="btnFindMatches">Find contractors</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= MATCHES ================= -->
+      <section class="view" id="view-matches">
+        <div class="stepper" data-step="2"></div>
+        <h1 class="page">Contractor matches</h1>
+        <p class="pagesub">MEP works — Tower B, Whitefield</p>
+
+        <div class="matchmeta">
+          <span><span class="num">6</span> contractors matched · ranked by composite score · <span class="num">2</span> have shown interest</span>
+          <span class="spacer"></span>
+          <button class="btn small" onclick="toast('Filters — coming in the full build')">Filter</button>
+          <button class="btn small" onclick="toast('Sorted by composite score')">Sort</button>
+        </div>
+
+        <div id="matchList"></div>
+      </section>
+
+      <!-- ================= ALERTS ================= -->
+      <section class="view" id="view-alerts">
+        <div style="display:flex;align-items:center;margin-bottom:16px;">
+          <div>
+            <h1 class="page" style="margin-bottom:2px;"><span id="alertCountTitle">4 new alerts</span></h1>
+            <div class="pagesub" style="margin:0;">Interest signals, quotations and deal updates in real time.</div>
+          </div>
+          <span style="flex:1"></span>
+          <button class="btn small" id="btnMarkRead">Mark all read</button>
+        </div>
+        <div id="alertList"></div>
+      </section>
+
+      <!-- ================= QUOTATIONS ================= -->
+      <section class="view" id="view-quotations">
+        <div class="stepper" data-step="3"></div>
+        <h1 class="page">Quotation comparison</h1>
+        <p class="pagesub">Comparing 2 quotations · MEP works — Tower B, Whitefield</p>
+
+        <div class="qgrid">
+          <div class="card qcard rec">
+            <div class="who">Vertex MEP Engineers <span class="badge green">Recommended</span></div>
+            <div class="amt num">₹47.8 Lakhs</div>
+            <div class="terms">Validity: 30 days · Timeline: 5 months<br>Includes: All materials + labour + testing</div>
+          </div>
+          <div class="card qcard">
+            <div class="who">Skyline Building Infra</div>
+            <div class="amt num">₹51.2 Lakhs</div>
+            <div class="terms">Validity: 21 days · Timeline: 6 months<br>Excludes: Fire suppression materials</div>
+          </div>
+        </div>
+
+        <div class="card qdetail">
+          <div class="qhead">
+            <div>
+              <div class="t">Vertex MEP Engineers — Quotation detail</div>
+              <div class="s">Submitted 2 hrs ago · Ref: QT-2026-0048</div>
+            </div>
+            <span style="flex:1"></span>
+            <button class="btn small" onclick="toast('Quotation PDF downloaded')">Download PDF</button>
+            <button class="btn small" onclick="toast('Message thread opened with Vertex MEP Engineers')">Message contractor</button>
+          </div>
+          <table class="lineitems">
+            <thead><tr><th>Item</th><th>Qty</th><th class="r">Rate (₹)</th><th class="r">Amount (₹)</th></tr></thead>
+            <tbody>
+              <tr><td>HVAC ducting &amp; AHU installation</td><td>LS</td><td class="r num">14,50,000</td><td class="r num">14,50,000</td></tr>
+              <tr><td>Plumbing risers &amp; sanitary</td><td>LS</td><td class="r num">8,20,000</td><td class="r num">8,20,000</td></tr>
+              <tr><td>Electrical LT panels &amp; wiring</td><td>LS</td><td class="r num">12,40,000</td><td class="r num">12,40,000</td></tr>
+              <tr><td>Fire suppression loop</td><td>LS</td><td class="r num">7,60,000</td><td class="r num">7,60,000</td></tr>
+              <tr><td>Testing &amp; commissioning</td><td>LS</td><td class="r num">5,10,000</td><td class="r num">5,10,000</td></tr>
+              <tr class="total"><td colspan="3">Total</td><td class="r num">₹47,80,000</td></tr>
+            </tbody>
+          </table>
+          <div class="qfoot">
+            <button class="btn danger small" onclick="toast('Quotation rejected — contractor notified')">Reject</button>
+            <button class="btn small" onclick="toast('Revision requested from Vertex MEP Engineers')">Request revision</button>
+            <button class="btn green" data-nav="close-deal">Accept &amp; close deal</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CLOSE DEAL ================= -->
+      <section class="view" id="view-close-deal">
+        <div class="stepper" data-step="4"></div>
+        <h1 class="page">Log deal closure — MEP works, Tower B</h1>
+        <p class="pagesub">The signed record becomes a verified project for the contractor and a permanent procurement entry for your company.</p>
+
+        <div class="card formcard">
+          <div class="fgrid">
+            <div class="field"><label for="d-con">Awarded contractor</label><input id="d-con" value="Vertex MEP Engineers Pvt Ltd"></div>
+            <div class="field"><label for="d-val">Final contract value (₹)</label><input id="d-val" class="num" value="47,80,000"></div>
+            <div class="field"><label for="d-start">Contract start date</label><input id="d-start" value="20 Jul 2026"></div>
+            <div class="field"><label for="d-end">Contract end date</label><input id="d-end" value="20 Dec 2026"></div>
+            <div class="field full"><label for="d-scope">Scope summary</label>
+              <textarea id="d-scope">Supply, installation and commissioning of complete MEP systems for floors 4–12, Tower B, Prestige Towers, Whitefield.</textarea>
+            </div>
+            <div class="field full"><label for="d-mile">Retention &amp; milestone terms</label>
+              <input id="d-mile" value="5% retention for 12 months · 30% mobilisation · 40% at 50% progress · 25% on commissioning">
+            </div>
+            <div class="field full">
+              <label>Upload signed agreement</label>
+              <div class="upload" id="uploadBox" role="button" tabindex="0">Upload signed PDF · Max 20MB</div>
+            </div>
+          </div>
+          <div class="formfoot">
+            <button class="btn primary" id="btnSaveDeal">Save deal record</button>
+          </div>
+        </div>
+
+        <div class="secthead">Previously closed deals</div>
+        <div id="closedListMini"></div>
+      </section>
+
+      <!-- ================= CLOSED DEALS ================= -->
+      <section class="view" id="view-closed-deals">
+        <h1 class="page">Closed deals</h1>
+        <p class="pagesub">Your searchable procurement history — contractor, value, dates and signed agreement, permanently on record.</p>
+        <div id="closedListFull"></div>
+      </section>
+
+      <!-- ================= CONTRACTORS DIRECTORY ================= -->
+      <section class="view" id="view-contractors">
+        <h1 class="page">Contractors</h1>
+        <p class="pagesub">All registered contractors matched to your organisation's categories. Scores are category-specific and continuously recalculated.</p>
+        <div class="dirgrid" id="dirList"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============ Data ============ */
+const contractors = [
+  {id:"vertex", name:"Vertex MEP Engineers Pvt Ltd", top:true, score:9.2, cat:"MEP specialist", est:2008, staff:140,
+   badges:["Verified","ISO 9001","ECBC","12 projects on platform"],
+   ratings:{Quality:9.4, Timeline:9.0, Responsiveness:8.8, "Budget adherence":9.2},
+   status:{type:"interest", text:"Showed interest · 3 hrs ago"}, hasQuote:true},
+  {id:"bharat", name:"Bharat Electro Contractors", score:8.5, cat:"Electrical & HVAC", est:2014, staff:68,
+   badges:["Verified","ISO 9001","7 projects on platform"],
+   ratings:{Quality:8.6, Timeline:8.2, Responsiveness:8.8, "Budget adherence":8.4},
+   status:{type:"interest", text:"Showed interest · 1 hr ago"}},
+  {id:"skyline", name:"Skyline Building Infra", score:7.9, cat:"Full MEP", est:2010, staff:95,
+   badges:["Verified","4 projects on platform"],
+   ratings:null,
+   status:{type:"pending", text:"Alert sent via WhatsApp · no response yet"}, hasQuote:true},
+  {id:"aircon", name:"AirCon Systems India", score:7.6, cat:"HVAC only", est:2016, staff:42,
+   badges:["Verified","ISO 9001","3 projects on platform"],
+   ratings:{Quality:7.8, Timeline:7.5, Responsiveness:7.4, "Budget adherence":7.7},
+   status:{type:"pending", text:"Alert sent · opened requirement, no interest shown"}},
+];
+
+const directory = [
+  {name:"Vertex MEP Engineers Pvt Ltd", cat:"MEP", score:9.2, meta:"Bengaluru · 140 staff · 12 platform projects", badges:["Verified","ISO 9001","ECBC"]},
+  {name:"Bharat Electro Contractors", cat:"MEP", score:8.5, meta:"Bengaluru · 68 staff · 7 platform projects", badges:["Verified","ISO 9001"]},
+  {name:"Decora Interiors", cat:"Interior fit-out", score:8.8, meta:"Bengaluru · 54 staff · 9 platform projects", badges:["Verified","Platform Preferred"]},
+  {name:"Aquaguard Systems", cat:"Waterproofing", score:8.1, meta:"Bengaluru · 30 staff · 5 platform projects", badges:["Verified"]},
+  {name:"Skyline Building Infra", cat:"MEP", score:7.9, meta:"Bengaluru · 95 staff · 4 platform projects", badges:["Verified"]},
+  {name:"GreenScape Landscapes", cat:"Landscaping", score:8.4, meta:"Bengaluru · 22 staff · 6 platform projects", badges:["Verified","ISO 9001"]},
+];
+
+let alerts = [
+  {t:"Vertex MEP Engineers showed interest", d:'They\u2019ve opened your MEP requirement for Tower B and clicked \u201cShow Interest\u201d. Their composite score is 9.2.',
+   ts:"3 hours ago · MEP works — Tower B", read:false, actions:[["View profile","matches"],["Message them","msg:Vertex MEP Engineers"]]},
+  {t:"Quotation received from Vertex MEP Engineers", d:"A detailed quotation of ₹47.8L has been submitted for review. Includes line-item breakdown and method statement.",
+   ts:"2 hours ago · MEP works — Tower B", read:false, actions:[["Review quotation","quotations"]]},
+  {t:"Bharat Electro Contractors showed interest", d:"Opened your requirement and flagged interest. Score 8.5. No quotation submitted yet.",
+   ts:"1 hour ago · MEP works — Tower B", read:false, actions:[["View profile","matches"]]},
+  {t:"Contract agreement uploaded — Interior fit-out deal", d:"Signed agreement PDF uploaded by Decora Interiors. Deal record is now complete and archived.",
+   ts:"Yesterday · Interior fit-out — Koramangala", read:false, actions:[["View deal record","closed-deals"]]},
+];
+
+let closedDeals = [
+  {t:"Interior fit-out — Sales office, Koramangala", m:"Decora Interiors · ₹21.4L · Closed 2 Jul 2026 · Agreement uploaded"},
+  {t:"Waterproofing — Basement, Phase 1", m:"Aquaguard Systems · ₹8.6L · Closed 14 Jun 2026 · Agreement uploaded"},
+  {t:"Landscaping — Common areas, Block A", m:"GreenScape Landscapes · ₹6.2L · Closed 28 May 2026 · Agreement uploaded"},
+];
+
+const shortlist = new Set();
+let agreementUploaded = false;
+
+/* ============ Nav & stepper ============ */
+const stepNames = ["Task details","Review matches","Quotations","Close deal"];
+const stepNav = ["new-request","matches","quotations","close-deal"];
+const crumbTitles = {dashboard:"Dashboard","new-request":"New request",matches:"Review matches",alerts:"Alerts",
+  quotations:"Quotations","close-deal":"Close deal","closed-deals":"Closed deals",contractors:"Contractors"};
+
+function nav(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  const el = document.getElementById("view-"+view);
+  if(!el) return;
+  el.classList.add("active");
+  document.querySelectorAll(".navitem[data-nav]").forEach(b=>{
+    b.classList.toggle("active", b.dataset.nav===view ||
+      (view==="matches"||view==="new-request"||view==="close-deal") && b.dataset.nav==={"matches":"new-request","new-request":"new-request","close-deal":"closed-deals"}[view]);
+  });
+  document.getElementById("crumbTitle").textContent = crumbTitles[view] || "Dashboard";
+  if(view==="matches") animateBars();
+  window.scrollTo({top:0});
+}
+
+document.querySelectorAll("[data-nav]").forEach(b=>{
+  b.addEventListener("click", ()=>nav(b.dataset.nav));
+});
+
+/* build steppers */
+document.querySelectorAll(".stepper").forEach(st=>{
+  const cur = +st.dataset.step;
+  stepNames.forEach((name,i)=>{
+    const s = document.createElement("button");
+    s.className = "step " + (i+1<cur ? "done" : i+1===cur ? "current" : "");
+    s.style.cssText="border:0;background:none;padding:0;";
+    s.innerHTML = `<span class="n">${i+1<cur ? "✓" : i+1}</span> ${name}`;
+    s.addEventListener("click",()=>{ if(i+1<=cur) nav(stepNav[i]); });
+    st.appendChild(s);
+    if(i<stepNames.length-1){
+      const l=document.createElement("span"); l.className="step-line"; st.appendChild(l);
+    }
+  });
+});
+
+/* ============ Toast ============ */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+
+/* ============ Task chips ============ */
+document.querySelectorAll("#taskChips .chip").forEach(c=>{
+  c.addEventListener("click", ()=>{
+    document.querySelectorAll("#taskChips .chip").forEach(x=>x.classList.remove("on"));
+    c.classList.add("on");
+  });
+});
+
+/* ============ Matches rendering ============ */
+function renderMatches(){
+  const wrap = document.getElementById("matchList");
+  wrap.innerHTML = "";
+  contractors.forEach(c=>{
+    const card = document.createElement("div");
+    card.className = "card ccard" + (c.top ? " top" : "");
+    let ratingsHtml = "";
+    if(c.ratings){
+      ratingsHtml = '<div class="ratings">' + Object.entries(c.ratings).map(([k,v])=>
+        `<div class="rrow"><span class="rl">${k}</span><span class="rbar"><i data-w="${v*10}"></i></span><span class="rv num">${v.toFixed(1)}</span></div>`
+      ).join("") + "</div>";
+    } else {
+      ratingsHtml = `<div class="mutenote" style="margin:10px 0 4px;">${c.status.text}</div>`;
+    }
+    const statusBadge = c.ratings && c.status.type==="interest"
+      ? `<span class="badge amber">${c.status.text}</span>` : "";
+    const short = shortlist.has(c.id);
+    card.innerHTML = `
+      <div class="head">
+        <div class="info">
+          <div class="name">${c.name}${c.top ? ' <span class="badge green">Top match</span>' : ""}</div>
+          <div class="meta">Bengaluru · ${c.cat} · Est. ${c.est} · ${c.staff} staff</div>
+          <div class="badges" style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${c.badges.map(b=>`<span class="badge ${b==="Verified"?"green":b.includes("project")?"gray":"blue"}">${b}</span>`).join("")}
+          </div>
+        </div>
+        <div class="score"><div class="v num">${c.score.toFixed(1)}</div><div class="l">Composite score<br>MEP category</div></div>
+      </div>
+      ${ratingsHtml}
+      <div class="foot">
+        ${statusBadge}
+        <span class="spacer"></span>
+        <button class="btn small" onclick="toast('Full profile — certifications, verified projects & score breakdown')">Profile</button>
+        ${c.hasQuote && c.top ? '<button class="btn small" style="color:var(--blue);border-color:#C9D8EF;background:var(--blue-soft);" data-nav="quotations">View quotation</button>' : ""}
+        ${c.status.type==="pending" && !c.ratings ? `<button class="btn small" onclick="toast('Reminder nudge sent via WhatsApp')">Nudge</button>` : ""}
+        <button class="btn small ${short?"shortlisted":""}" data-short="${c.id}">${short ? "✓ Shortlisted" : "Shortlist"}</button>
+      </div>`;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll("[data-short]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id = b.dataset.short;
+      shortlist.has(id) ? shortlist.delete(id) : shortlist.add(id);
+      toast(shortlist.has(id) ? "Added to shortlist" : "Removed from shortlist");
+      renderMatches(); animateBars(true);
+    });
+  });
+  wrap.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.nav)));
+}
+function animateBars(instant){
+  requestAnimationFrame(()=>{
+    document.querySelectorAll("#matchList .rbar i").forEach(i=>{
+      if(instant) i.style.transition="none";
+      i.style.width = i.dataset.w + "%";
+    });
+  });
+}
+
+/* ============ Find matches (form submit) ============ */
+document.getElementById("btnFindMatches").addEventListener("click", ()=>{
+  const btn = document.getElementById("btnFindMatches");
+  btn.disabled = true; btn.textContent = "Matching & ranking…";
+  setTimeout(()=>{
+    btn.disabled = false; btn.textContent = "Find contractors";
+    toast("6 contractors matched · alerts sent via WhatsApp & push");
+    nav("matches");
+  }, 900);
+});
+
+/* ============ Alerts ============ */
+function renderAlerts(){
+  const wrap = document.getElementById("alertList");
+  wrap.innerHTML = "";
+  alerts.forEach(a=>{
+    const row = document.createElement("div");
+    row.className = "card alertrow" + (a.read ? " read" : "");
+    row.innerHTML = `
+      <div class="ind"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="t">${a.t}</div>
+        <div class="d">${a.d}</div>
+        <div class="ts">${a.ts}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${a.actions.map(([label,act])=>`<button class="btn small" data-act="${act}">${label}</button>`).join("")}
+        </div>
+      </div>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll("[data-act]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const act = b.dataset.act;
+      if(act.startsWith("msg:")) toast("Message thread opened with " + act.slice(4));
+      else nav(act);
+    });
+  });
+  updateAlertBadges();
+}
+function updateAlertBadges(){
+  const unread = alerts.filter(a=>!a.read).length;
+  const pill = document.getElementById("alertPill"), dot = document.getElementById("alertDot");
+  pill.textContent = unread; dot.textContent = unread;
+  pill.style.display = dot.style.display = unread ? "" : "none";
+  document.getElementById("alertCountTitle").textContent =
+    unread ? `${unread} new alert${unread>1?"s":""}` : "All caught up";
+}
+document.getElementById("btnMarkRead").addEventListener("click", ()=>{
+  alerts.forEach(a=>a.read=true); renderAlerts(); toast("All alerts marked read");
+});
+
+/* ============ Closed deals ============ */
+function renderClosed(){
+  ["closedListMini","closedListFull"].forEach(id=>{
+    const wrap = document.getElementById(id);
+    wrap.innerHTML = "";
+    closedDeals.forEach(d=>{
+      const row = document.createElement("div");
+      row.className = "card dealrow";
+      row.innerHTML = `
+        <div style="min-width:0;">
+          <div class="t">${d.t}</div>
+          <div class="m">${d.m}</div>
+        </div>
+        <span class="spacer"></span>
+        ${d.fresh ? '<span class="badge green">Just closed</span>' : ""}
+        <button class="btn small" onclick="toast('Deal record — quotation, messages, milestones & signed agreement')">View</button>`;
+      wrap.appendChild(row);
+    });
+  });
+  document.getElementById("statClosed").textContent = closedDeals.filter(d=>d.m.includes("Jul 2026")).length + 2;
+}
+
+/* ============ Close deal ============ */
+const uploadBox = document.getElementById("uploadBox");
+function doUpload(){
+  agreementUploaded = true;
+  uploadBox.classList.add("ok");
+  uploadBox.textContent = "✓ Signed-Agreement-VertexMEP.pdf · 2.4 MB uploaded";
+}
+uploadBox.addEventListener("click", doUpload);
+uploadBox.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" ") {e.preventDefault(); doUpload();} });
+
+document.getElementById("btnSaveDeal").addEventListener("click", ()=>{
+  if(!agreementUploaded){ toast("Upload the signed agreement to complete the record"); return; }
+  const already = closedDeals.some(d=>d.fresh);
+  if(!already){
+    closedDeals.unshift({t:"MEP works — Tower B, Whitefield",
+      m:"Vertex MEP Engineers · ₹47.8L · Closed 13 Jul 2026 · Agreement uploaded", fresh:true});
+    alerts.unshift({t:"Deal closed — MEP works, Tower B", read:false,
+      d:"Deal logged with Vertex MEP Engineers at ₹47.8L. Both parties notified. A performance review will be requested at contract end — it feeds their composite score.",
+      ts:"Just now · MEP works — Tower B", actions:[["View deal record","closed-deals"]]});
+    document.getElementById("statActive").textContent = 11;
+    document.getElementById("statQuotes").textContent = 4;
+    renderAlerts();
+  }
+  renderClosed();
+  toast("Deal record saved — verified project added to Vertex MEP's profile");
+  setTimeout(()=>nav("closed-deals"), 700);
+});
+
+/* ============ Directory ============ */
+function renderDirectory(){
+  const wrap = document.getElementById("dirList");
+  wrap.innerHTML = "";
+  directory.forEach(c=>{
+    const card = document.createElement("div");
+    card.className = "card ccard";
+    card.innerHTML = `
+      <div class="head">
+        <div class="info">
+          <div class="name">${c.name}</div>
+          <div class="meta">${c.cat} · ${c.meta}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${c.badges.map(b=>`<span class="badge ${b==="Platform Preferred"?"blue":"green"}">${b}</span>`).join("")}
+          </div>
+        </div>
+        <div class="score"><div class="v num">${c.score.toFixed(1)}</div><div class="l">Composite score<br>${c.cat}</div></div>
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+/* ============ Init ============ */
+renderMatches(); renderAlerts(); renderClosed(); renderDirectory();
+nav("dashboard");
+</script>
+</body>
+</html>
